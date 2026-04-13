@@ -1,0 +1,122 @@
+[
+    {
+        "english": "Baha'u'llah",
+        "chinese": "巴哈欧拉",
+        "notes": "Founder of the Baha'i Faith. Always use this transliteration.",
+        "category": "person"
+    },
+    {
+        "english": "Abdu'l-Baha",
+        "chinese": "阿博都-巴哈",
+        "notes": "Son of Baha'u'llah. Title meaning 'Servant of Baha'.",
+        "category": "person"
+    },
+    {
+        "english": "the Guardian",
+        "chinese": "圣护",
+        "notes": "Shoghi Effendi. Use '圣护' in formal sacred text contexts.",
+        "category": "person"
+    },
+    {
+        "english": "Shoghi Effendi",
+        "chinese": "守基·阿芬第",
+        "notes": "Guardian of the Baha'i Faith. Use full name when first referenced.",
+        "category": "person"
+    },
+    {
+        "english": "the Bab",
+        "chinese": "巴布",
+        "notes": "Herald of the Baha'i Faith. Title meaning 'the Gate'.",
+        "category": "person"
+    },
+    {
+        "english": "Universal House of Justice",
+        "chinese": "世界正义院",
+        "notes": "Supreme governing institution of the Baha'i Faith.",
+        "category": "institution"
+    },
+    {
+        "english": "National Spiritual Assembly",
+        "chinese": "总灵理会",
+        "notes": "National governing body. Abbreviated as NSA.",
+        "category": "institution"
+    },
+    {
+        "english": "Local Spiritual Assembly",
+        "chinese": "地方灵理会",
+        "notes": "Local governing body.",
+        "category": "institution"
+    },
+    {
+        "english": "Manifestation of God",
+        "chinese": "上帝的显圣者",
+        "notes": "Central theological term for divine messengers.",
+        "category": "theology"
+    },
+    {
+        "english": "the Covenant",
+        "chinese": "圣约",
+        "notes": "The binding agreement between God and humanity.",
+        "category": "theology"
+    },
+    {
+        "english": "the Word of God",
+        "chinese": "上帝之言",
+        "notes": "Sacred scripture. Elevated register required.",
+        "category": "theology"
+    },
+    {
+        "english": "Holy Writings",
+        "chinese": "圣典",
+        "notes": "Collective term for Baha'i sacred texts.",
+        "category": "theology"
+    },
+    {
+        "english": "consultation",
+        "chinese": "磋商",
+        "notes": "Baha'i decision-making process. Not '咨询' (which implies advisory only).",
+        "category": "concept"
+    },
+    {
+        "english": "service",
+        "chinese": "服务",
+        "notes": "In spiritual context, service to humanity and God.",
+        "category": "concept"
+    },
+    {
+        "english": "unity",
+        "chinese": "团结",
+        "notes": "Core Baha'i principle. Also '统一' in some contexts.",
+        "category": "concept"
+    },
+    {
+        "english": "the Kitab-i-Aqdas",
+        "chinese": "《亚格达斯经》",
+        "notes": "The Most Holy Book. Always use book title markers 《》.",
+        "category": "scripture"
+    },
+    {
+        "english": "the Kitab-i-Iqan",
+        "chinese": "《伊甘经》",
+        "notes": "The Book of Certitude.",
+        "category": "scripture"
+    },
+    {
+        "english": "the Hidden Words",
+        "chinese": "《隐言经》",
+        "notes": "Collection of short spiritual passages by Baha'u'llah.",
+        "category": "scripture"
+    },
+    {
+        "english": "Tablets",
+        "chinese": "书简",
+        "notes": "Letters and epistles by Baha'u'llah or Abdu'l-Baha.",
+        "category": "scripture"
+    },
+    {
+        "english": "the Blessed Beauty",
+        "chinese": "天佑美尊",
+        "notes": "Title of Baha'u'llah used in devotional contexts.",
+        "category": "title"
+    }
+]

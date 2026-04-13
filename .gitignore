@@ -1,0 +1,5 @@
+.env
+__pycache__/
+workbench.db
+pipeline_settings.json
+*.pyc

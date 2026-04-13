@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahai Chinese Translation Workbench</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f0eb; color: #2c2c2c; line-height: 1.6; }
+
+        /* Login */
+        .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #3c2415 0%, #5a3a28 100%); }
+        .login-box { background: #fff; padding: 40px; border-radius: 12px; width: 380px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .login-box h1 { font-size: 20px; color: #3c2415; margin-bottom: 4px; }
+        .login-box p { font-size: 13px; color: #888; margin-bottom: 24px; }
+        .login-box .form-group { margin-bottom: 16px; text-align: left; }
+        .login-box label { display: block; font-size: 13px; font-weight: 600; color: #5a3a28; margin-bottom: 4px; }
+        .login-box input, .login-box select { width: 100%; padding: 10px 12px; border: 1px solid #d4c5b3; border-radius: 6px; font-size: 14px; background: #faf8f5; }
+        .login-error { color: #8a4a4a; font-size: 13px; margin-bottom: 12px; display: none; }
+
+        /* Header */
+        .header { background: linear-gradient(135deg, #3c2415 0%, #5a3a28 100%); color: #f5f0eb; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #c4a882; }
+        .header-right a { color: #c4a882; cursor: pointer; text-decoration: underline; }
+
+        /* Tabs */
+        .tab-bar { display: flex; gap: 0; background: #fff; border-bottom: 1px solid #e0d5c8; padding: 0 32px; }
+        .tab { padding: 12px 20px; font-size: 13px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab.active { color: #3c2415; border-bottom-color: #c4a882; }
+        .tab:hover { color: #5a3a28; }
+
+        /* Progress Bar */
+        .progress-bar { display: flex; justify-content: center; align-items: center; padding: 20px 32px; background: #fff; border-bottom: 1px solid #e0d5c8; }
+        .stage-step { display: flex; align-items: center; gap: 6px; }
+        .stage-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border: 2px solid #c4a882; color: #c4a882; background: #fff; transition: all 0.3s; }
+        .stage-circle.active { background: #c4a882; color: #fff; }
+        .stage-circle.completed { background: #5a8a5a; color: #fff; border-color: #5a8a5a; }
+        .stage-label { font-size: 11px; color: #888; }
+        .stage-label.active { color: #3c2415; font-weight: 600; }
+        .stage-label.completed { color: #5a8a5a; }
+        .stage-connector { width: 32px; height: 2px; background: #e0d5c8; margin: 0 4px; }
+        .stage-connector.completed { background: #5a8a5a; }
+
+        /* Container */
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #5a3a28; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #d4c5b3; border-radius: 6px; font-size: 14px; font-family: inherit; background: #faf8f5; }
+        .form-group textarea { min-height: 180px; resize: vertical; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #c4a882; box-shadow: 0 0 0 3px rgba(196,168,130,0.15); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+        /* Buttons */
+        .btn { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #5a3a28; color: #fff; }
+        .btn-primary:hover { background: #3c2415; }
+        .btn-primary:disabled { background: #b0a090; cursor: not-allowed; }
+        .btn-approve { background: #5a8a5a; color: #fff; }
+        .btn-approve:hover { background: #4a7a4a; }
+        .btn-reject { background: #8a4a4a; color: #fff; }
+        .btn-reject:hover { background: #7a3a3a; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-danger { background: #8a4a4a; color: #fff; }
+        .btn-danger:hover { background: #7a3a3a; }
+
+        /* Cards / Panels */
+        .panel { background: #fff; border-radius: 8px; padding: 24px; border: 1px solid #e0d5c8; margin-bottom: 16px; }
+        .panel h2 { font-size: 18px; color: #3c2415; margin-bottom: 16px; }
+        .panel h3 { font-size: 16px; color: #3c2415; margin-bottom: 12px; }
+
+        /* Document Queue Table */
+        .doc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .doc-table th { text-align: left; padding: 10px 12px; background: #f0ebe4; color: #5a3a28; font-weight: 600; border-bottom: 2px solid #e0d5c8; }
+        .doc-table td { padding: 10px 12px; border-bottom: 1px solid #f0ebe4; }
+        .doc-table tr:hover { background: #faf8f5; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .badge-stage { background: #e8f0e8; color: #3a5a3a; }
+        .badge-done { background: #5a8a5a; color: #fff; }
+        .badge-pending { background: #fef3cd; color: #856404; }
+
+        /* Side-by-Side */
+        .side-by-side { display: none; gap: 16px; margin-top: 16px; }
+        .side-by-side.visible { display: grid; }
+        .side-by-side.cols-2 { grid-template-columns: 1fr 1fr; }
+        .side-by-side.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .text-panel { background: #fff; border-radius: 8px; border: 1px solid #e0d5c8; overflow: hidden; }
+        .panel-header { padding: 10px 16px; font-size: 12px; font-weight: 600; border-bottom: 1px solid #e0d5c8; }
+        .panel-header.source { background: #f0ebe4; color: #5a3a28; }
+        .panel-header.translation { background: #e8f0e8; color: #3a5a3a; }
+        .panel-header.approved { background: #e8e0f0; color: #5a3a7a; }
+        .panel-body { padding: 16px; font-size: 14px; line-height: 1.8; max-height: 500px; overflow-y: auto; white-space: pre-wrap; }
+
+        /* Review / Edit / Proofread panels */
+        .action-panel { display: none; margin-top: 16px; }
+        .action-panel.visible { display: block; }
+        .radio-group { display: flex; gap: 24px; margin-bottom: 16px; }
+        .radio-group label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+        .edit-textarea { display: none; width: 100%; min-height: 180px; padding: 12px; border: 1px solid #d4c5b3; border-radius: 6px; font-size: 14px; font-family: inherit; line-height: 1.8; resize: vertical; margin-bottom: 12px; }
+        .edit-textarea.visible { display: block; }
+        .notes-input { width: 100%; padding: 10px 12px; border: 1px solid #d4c5b3; border-radius: 6px; font-size: 14px; font-family: inherit; margin-bottom: 16px; }
+
+        /* Checklist */
+        .checklist-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .checklist-item { padding: 12px; background: #faf8f5; border-radius: 6px; border: 1px solid #e0d5c8; }
+        .checklist-item h4 { font-size: 13px; color: #5a3a28; margin-bottom: 4px; }
+        .checklist-item p, .checklist-item select, .checklist-item input { font-size: 12px; color: #666; }
+        .checklist-item select { width: 100%; padding: 4px; margin-bottom: 4px; border: 1px solid #d4c5b3; border-radius: 4px; }
+        .checklist-item input { width: 100%; padding: 4px; border: 1px solid #d4c5b3; border-radius: 4px; }
+
+        /* Changes List */
+        .changes-list { list-style: none; padding: 0; }
+        .changes-list li { padding: 8px 12px; margin-bottom: 6px; background: #faf8f5; border-left: 3px solid #c4a882; border-radius: 0 4px 4px 0; font-size: 13px; }
+
+        /* Glossary Sidebar */
+        .glossary-toggle { position: fixed; right: 0; top: 50%; transform: translateY(-50%); background: #5a3a28; color: #fff; padding: 12px 8px; border-radius: 6px 0 0 6px; cursor: pointer; writing-mode: vertical-rl; font-size: 12px; font-weight: 600; z-index: 100; }
+        .glossary-sidebar { position: fixed; right: -320px; top: 0; width: 320px; height: 100vh; background: #fff; border-left: 1px solid #e0d5c8; padding: 16px; overflow-y: auto; transition: right 0.3s; z-index: 99; box-shadow: -4px 0 12px rgba(0,0,0,0.05); }
+        .glossary-sidebar.open { right: 0; }
+        .glossary-sidebar h3 { font-size: 16px; color: #3c2415; margin-bottom: 12px; }
+        .glossary-search { width: 100%; padding: 8px 10px; border: 1px solid #d4c5b3; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+        .glossary-term { padding: 8px 0; border-bottom: 1px solid #f0ebe4; font-size: 13px; display: flex; justify-content: space-between; align-items: start; }
+        .glossary-term .term-info { flex: 1; }
+        .glossary-term .en { color: #3c2415; font-weight: 600; }
+        .glossary-term .zh { color: #5a8a5a; }
+        .glossary-term .note { color: #999; font-size: 11px; display: block; margin-top: 2px; }
+        .glossary-term .term-actions { display: flex; gap: 4px; }
+
+        /* Spinner */
+        .spinner { display: none; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: #5a3a28; }
+        .spinner.visible { display: flex; }
+        .spinner::before { content: ''; width: 18px; height: 18px; border: 2px solid #e0d5c8; border-top-color: #5a3a28; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Team table */
+        .team-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .team-table th { text-align: left; padding: 8px 12px; background: #f0ebe4; color: #5a3a28; }
+        .team-table td { padding: 8px 12px; border-bottom: 1px solid #f0ebe4; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .side-by-side.visible { grid-template-columns: 1fr !important; }
+            .checklist-row { grid-template-columns: 1fr; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .radio-group { flex-direction: column; gap: 8px; }
+            .tab-bar { overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+    <div class="login-box">
+        <h1>Translation Workbench</h1>
+        <p>Bahai Chinese Translation Pipeline</p>
+        <div class="login-error" id="login-error"></div>
+        <div class="form-group">
+            <label for="login-name">Your Name</label>
+            <input type="text" id="login-name" placeholder="Enter your name">
+        </div>
+        <div class="form-group">
+            <label for="login-role">Your Role</label>
+            <select id="login-role">
+                <option value="governor">Governor</option>
+                <option value="coordinator">Coordinator</option>
+                <option value="terminology_specialist">Terminology Specialist</option>
+                <option value="final_reviewer">Final Reviewer</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Log In</button>
+    </div>
+</div>
+
+<!-- MAIN APP (hidden until login) -->
+<div id="main-app" style="display:none">
+
+<div class="header">
+    <h1>Translation Workbench</h1>
+    <div class="header-right">
+        <span id="user-info"></span>
+        <a onclick="doLogout()">Log out</a>
+    </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar" id="tab-bar"></div>
+
+<div class="container">
+
+<!-- TAB: Documents -->
+<div class="tab-content" id="tab-documents">
+    <div class="panel">
+        <h2>Documents</h2>
+        <table class="doc-table">
+            <thead><tr><th>Title</th><th>Stage</th><th>Status</th><th>Governor A</th><th>Governor B</th><th>Action</th></tr></thead>
+            <tbody id="doc-queue-body"></tbody>
+        </table>
+        <p id="doc-queue-empty" style="color:#888; font-size:13px; padding:16px; display:none;">No documents found.</p>
+    </div>
+</div>
+
+<!-- TAB: Create Document (coordinator) -->
+<div class="tab-content" id="tab-create">
+    <div class="panel">
+        <h2>Create New Document</h2>
+        <div class="form-group">
+            <label for="doc-title">Document Title</label>
+            <input type="text" id="doc-title" placeholder="e.g., Gleanings from the Writings of Baha'u'llah, Section I">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="source-lang">Source Language</label>
+                <select id="source-lang">
+                    <option value="en">English</option>
+                    <option value="ar">Arabic</option>
+                    <option value="fa">Persian</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gov-model">Governor Model</label>
+                <select id="gov-model" onchange="onGovModelChange()">
+                    <option value="single">Single Governor</option>
+                    <option value="dual">Dual Governor</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="gov-a">Governor A (Stage 2)</label>
+                <select id="gov-a"></select>
+            </div>
+            <div class="form-group" id="gov-b-group" style="display:none">
+                <label for="gov-b">Governor B (Stage 5)</label>
+                <select id="gov-b"></select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="source-text">Source Text</label>
+            <textarea id="source-text" placeholder="Paste the source text here..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="btn-translate" onclick="startTranslation()">Create &amp; Translate</button>
+        <div class="spinner" id="spinner-translate">Translating with AI... This may take a moment.</div>
+    </div>
+</div>
+
+<!-- TAB: Document View (detail) -->
+<div class="tab-content" id="tab-doc-view">
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="doc-progress-bar">
+        <div class="stage-step"><div class="stage-circle active" id="circle-1">1</div><span class="stage-label active" id="label-1">Translation</span></div>
+        <div class="stage-connector" id="conn-1"></div>
+        <div class="stage-step"><div class="stage-circle" id="circle-2">2</div><span class="stage-label" id="label-2">Review</span></div>
+        <div class="stage-connector" id="conn-2"></div>
+        <div class="stage-step"><div class="stage-circle" id="circle-3">3</div><span class="stage-label" id="label-3">Editing</span></div>
+        <div class="stage-connector" id="conn-3"></div>
+        <div class="stage-step"><div class="stage-circle" id="circle-4">4</div><span class="stage-label" id="label-4">Typesetting</span></div>
+        <div class="stage-connector" id="conn-4"></div>
+        <div class="stage-step"><div class="stage-circle" id="circle-5">5</div><span class="stage-label" id="label-5">Proofread</span></div>
+    </div>
+
+    <button class="btn btn-sm" style="margin-bottom:12px" onclick="showTab('documents');">&larr; Back to Documents</button>
+
+    <!-- Side-by-side panels -->
+    <div class="side-by-side cols-2 visible" id="side-by-side">
+        <div class="text-panel"><div class="panel-header source">Source Text</div><div class="panel-body" id="panel-source"></div></div>
+        <div class="text-panel"><div class="panel-header translation" id="panel-trans-header">Chinese Translation</div><div class="panel-body" id="panel-trans"></div></div>
+    </div>
+
+    <!-- Three-way comparison (Stage 5) -->
+    <div class="side-by-side cols-3" id="three-way">
+        <div class="text-panel"><div class="panel-header source">Source Text</div><div class="panel-body" id="tw-source"></div></div>
+        <div class="text-panel"><div class="panel-header approved">Stage 2 Approved</div><div class="panel-body" id="tw-approved"></div></div>
+        <div class="text-panel"><div class="panel-header translation">Stage 4 Typeset</div><div class="panel-body" id="tw-typeset"></div></div>
+    </div>
+
+    <!-- Stage 2: Review -->
+    <div class="action-panel panel" id="review-panel">
+        <h3>Stage 2: Translation Review</h3>
+        <p style="font-size:13px; color:#666; margin-bottom:16px;">Review accuracy, beauty, and consistency. Then approve, edit, or reject.</p>
+        <div class="checklist-row">
+            <div class="checklist-item"><h4>Accuracy 准确</h4><select id="chk-accuracy"><option value="">--</option><option>Strong</option><option>Acceptable</option><option>Needs Improvement</option></select><input type="text" id="chk-accuracy-notes" placeholder="Notes (optional)"></div>
+            <div class="checklist-item"><h4>Beauty 文风优美</h4><select id="chk-beauty"><option value="">--</option><option>Strong</option><option>Acceptable</option><option>Needs Improvement</option></select><input type="text" id="chk-beauty-notes" placeholder="Notes (optional)"></div>
+            <div class="checklist-item"><h4>Consistency 风格一致</h4><select id="chk-consistency"><option value="">--</option><option>Strong</option><option>Acceptable</option><option>Needs Improvement</option></select><input type="text" id="chk-consistency-notes" placeholder="Notes (optional)"></div>
+        </div>
+        <div class="radio-group">
+            <label><input type="radio" name="decision" value="approve" onchange="onDecisionChange(this.value)"> Approve</label>
+            <label><input type="radio" name="decision" value="edit" onchange="onDecisionChange(this.value)"> Edit</label>
+            <label><input type="radio" name="decision" value="reject" onchange="onDecisionChange(this.value)"> Reject</label>
+        </div>
+        <textarea class="edit-textarea" id="edit-textarea" placeholder="Edit the translation here..."></textarea>
+        <input type="text" class="notes-input" id="review-notes" placeholder="Reviewer notes (optional)">
+        <button class="btn btn-approve" id="btn-review" onclick="submitReview()" disabled>Submit Review</button>
+    </div>
+
+    <!-- Stage 3+4: Editing -->
+    <div class="action-panel panel" id="editing-panel">
+        <h3>Stage 3-4: AI Editing &amp; Typesetting</h3>
+        <p style="font-size:13px; color:#666; margin-bottom:16px;">The AI will refine style, then validate formatting. Both stages run automatically.</p>
+        <button class="btn btn-primary" id="btn-edit" onclick="runEditing()">Run Editing &amp; Typesetting</button>
+        <div class="spinner" id="spinner-edit">Editing and formatting... This may take a moment.</div>
+    </div>
+
+    <!-- Stage 5: Proofread -->
+    <div class="action-panel panel" id="proofread-panel">
+        <h3>Stage 5: Proofread</h3>
+        <p style="font-size:13px; color:#666; margin-bottom:16px;">Compare the typeset output against the Stage 2 approved text. Check for drift.</p>
+        <div class="radio-group">
+            <label><input type="radio" name="proof-decision" value="approve" onchange="onProofDecisionChange(this.value)"> Approve</label>
+            <label><input type="radio" name="proof-decision" value="edit" onchange="onProofDecisionChange(this.value)"> Edit</label>
+            <label><input type="radio" name="proof-decision" value="reject" onchange="onProofDecisionChange(this.value)"> Reject</label>
+        </div>
+        <textarea class="edit-textarea" id="proof-edit-textarea" placeholder="Edit the text here..."></textarea>
+        <input type="text" class="notes-input" id="proof-notes" placeholder="Reviewer notes (optional)">
+        <button class="btn btn-approve" id="btn-proofread" onclick="submitProofread()" disabled>Submit Proofread</button>
+    </div>
+
+    <!-- Result (completed) -->
+    <div class="action-panel panel" id="result-panel">
+        <h3>Translation Complete</h3>
+        <button class="btn btn-primary" onclick="copyFinalTranslation()" id="btn-copy">Copy Translation to Clipboard</button>
+        <span id="copy-confirm" style="font-size:13px; color:#5a8a5a; margin-left:12px; display:none;">Copied!</span>
+        <h4 style="font-size:14px; color:#5a3a28; margin:16px 0 8px;">Stage 3 Changes</h4>
+        <ul class="changes-list" id="changes-list"></ul>
+        <h4 style="font-size:14px; color:#5a3a28; margin:12px 0 8px;">Three-Standard Checklist (AI)</h4>
+        <div class="checklist-row" id="ai-checklist"></div>
+        <h4 style="font-size:14px; color:#5a3a28; margin:12px 0 8px;">Stage 4 Formatting Issues</h4>
+        <ul class="changes-list" id="typeset-issues"></ul>
+    </div>
+</div>
+
+<!-- TAB: Glossary Editor -->
+<div class="tab-content" id="tab-glossary">
+    <div class="panel">
+        <h2>Glossary Editor</h2>
+        <div class="form-row" id="glossary-add-form">
+            <div class="form-group"><label>English</label><input type="text" id="gl-english" placeholder="English term"></div>
+            <div class="form-group"><label>Chinese</label><input type="text" id="gl-chinese" placeholder="Chinese translation"></div>
+        </div>
+        <div class="form-row" style="margin-bottom:16px">
+            <div class="form-group"><label>Notes</label><input type="text" id="gl-notes" placeholder="Usage notes"></div>
+            <div class="form-group"><label>Category</label>
+                <select id="gl-category"><option>person</option><option>theology</option><option>institution</option><option selected>concept</option><option>scripture</option><option>title</option></select>
+            </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addGlossaryTerm()">Add Term</button>
+        <hr style="margin:16px 0; border-color:#f0ebe4">
+        <input type="text" class="glossary-search" id="gl-editor-search" placeholder="Search terms..." oninput="filterEditorGlossary()">
+        <div id="gl-editor-list"></div>
+    </div>
+</div>
+
+<!-- TAB: Dashboard -->
+<div class="tab-content" id="tab-dashboard">
+    <div class="panel">
+        <h2>Pipeline Dashboard</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
+            <div class="checklist-item"><h4>Total Documents</h4><p id="dash-total" style="font-size:24px; font-weight:700; color:#3c2415">0</p></div>
+            <div class="checklist-item" style="background:#fef9e7"><h4>In Progress</h4><p id="dash-progress" style="font-size:24px; font-weight:700; color:#856404">0</p></div>
+            <div class="checklist-item" style="background:#e8f0e8"><h4>Completed</h4><p id="dash-completed" style="font-size:24px; font-weight:700; color:#3a5a3a">0</p></div>
+        </div>
+        <h3>Documents by Stage</h3>
+        <div id="dash-stages" style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:12px 0 24px;"></div>
+        <h3>Current LLM Configuration</h3>
+        <div id="dash-models" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:12px;"></div>
+    </div>
+</div>
+
+<!-- TAB: Pipeline Settings -->
+<div class="tab-content" id="tab-pipeline">
+    <div class="panel">
+        <h2>Pipeline Settings — LLM per Stage</h2>
+        <p style="font-size:13px; color:#666; margin-bottom:16px;">Select which LLM model to use at each AI-operated stage. All documents use these settings. Only Claude is active unless you add other API keys to .env.</p>
+        <div class="form-row-3" style="margin-bottom:24px">
+            <div class="form-group"><label>Stage 1: Translation</label><select id="ps-stage1"></select></div>
+            <div class="form-group"><label>Stage 3: Editing</label><select id="ps-stage3"></select></div>
+            <div class="form-group"><label>Stage 4: Typesetting</label><select id="ps-stage4"></select></div>
+        </div>
+        <button class="btn btn-primary" onclick="savePipelineSettings()">Save Settings</button>
+        <span id="ps-confirm" style="font-size:13px; color:#5a8a5a; margin-left:12px; display:none;">Saved!</span>
+        <hr style="margin:24px 0; border-color:#f0ebe4">
+        <h3>Available Models</h3>
+        <table class="team-table" style="margin-top:12px">
+            <thead><tr><th>Model</th><th>Provider</th><th>Status</th></tr></thead>
+            <tbody id="models-table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- TAB: Team Management -->
+<div class="tab-content" id="tab-team">
+    <div class="panel">
+        <h2>Team Management</h2>
+        <div class="form-row" style="margin-bottom:16px">
+            <div class="form-group"><label>Name</label><input type="text" id="tm-name" placeholder="Full name"></div>
+            <div class="form-group"><label>Role</label>
+                <select id="tm-role"><option value="governor">Governor</option><option value="coordinator">Coordinator</option><option value="terminology_specialist">Terminology Specialist</option><option value="final_reviewer">Final Reviewer</option></select>
+            </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addTeamMember()">Add Member</button>
+        <hr style="margin:16px 0; border-color:#f0ebe4">
+        <table class="team-table">
+            <thead><tr><th>Name</th><th>Role</th><th>Action</th></tr></thead>
+            <tbody id="team-table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+</div><!-- /main-app -->
+
+<!-- Glossary Sidebar (read-only, always available after login) -->
+<div class="glossary-toggle" id="glossary-toggle-btn" style="display:none" onclick="toggleGlossary()">Glossary</div>
+<div class="glossary-sidebar" id="glossary-sidebar">
+    <h3>Terminology Glossary</h3>
+    <input type="text" class="glossary-search" id="glossary-search" placeholder="Search terms..." oninput="filterGlossary()">
+    <div id="glossary-list"></div>
+</div>
+
+<script>
+let currentUser = null;
+let currentDocId = null;
+let currentDoc = null;
+let glossaryData = [];
+let teamData = [];
+
+// ========== AUTH ==========
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/me');
+        if (res.ok) {
+            currentUser = await res.json();
+            enterApp();
+        }
+    } catch(e) {}
+});
+
+async function doLogin() {
+    const name = document.getElementById('login-name').value.trim();
+    const role = document.getElementById('login-role').value;
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+    if (!name) { errEl.textContent = 'Please enter your name.'; errEl.style.display = 'block'; return; }
+    try {
+        const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, role}) });
+        if (!res.ok) { const e = await res.json(); errEl.textContent = e.detail; errEl.style.display = 'block'; return; }
+        currentUser = await res.json();
+        enterApp();
+    } catch(e) { errEl.textContent = 'Connection error.'; errEl.style.display = 'block'; }
+}
+
+async function doLogout() {
+    await fetch('/api/logout', {method:'POST'});
+    currentUser = null;
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('glossary-toggle-btn').style.display = 'none';
+}
+
+function enterApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    document.getElementById('glossary-toggle-btn').style.display = 'block';
+    document.getElementById('user-info').textContent = `${currentUser.name} (${currentUser.role.replace('_',' ')})`;
+    buildTabs();
+    loadGlossary();
+    loadDocuments();
+}
+
+// ========== TABS ==========
+function buildTabs() {
+    const bar = document.getElementById('tab-bar');
+    const r = currentUser.role;
+    let tabs = [{ id:'documents', label:'Documents' }, { id:'dashboard', label:'Dashboard' }];
+    if (r === 'coordinator') {
+        tabs.push({ id:'create', label:'Create Document' });
+        tabs.push({ id:'pipeline', label:'Pipeline Settings' });
+        tabs.push({ id:'glossary', label:'Glossary Editor' });
+        tabs.push({ id:'team', label:'Team Management' });
+    }
+    if (r === 'terminology_specialist') {
+        tabs.push({ id:'glossary', label:'Glossary Editor' });
+    }
+    bar.innerHTML = tabs.map((t,i) => `<div class="tab ${i===0?'active':''}" data-tab="${t.id}" onclick="showTab('${t.id}')">${t.label}</div>`).join('');
+    showTab('documents');
+    if (r === 'coordinator') { loadTeam(); populateGovernorDropdowns(); }
+}
+
+function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    const tabEl = document.getElementById('tab-'+tabId);
+    if (tabEl) tabEl.classList.add('active');
+    document.querySelectorAll(`.tab[data-tab="${tabId}"]`).forEach(el => el.classList.add('active'));
+    if (tabId === 'documents') loadDocuments();
+    if (tabId === 'team') loadTeam();
+    if (tabId === 'glossary') renderEditorGlossary(glossaryData);
+    if (tabId === 'dashboard') loadDashboard();
+    if (tabId === 'pipeline') loadPipelineSettings();
+}
+
+// ========== GLOSSARY ==========
+async function loadGlossary() {
+    try { const r = await fetch('/api/glossary'); const d = await r.json(); glossaryData = d.terms||[]; renderGlossary(glossaryData); } catch(e) {}
+}
+function renderGlossary(terms) {
+    document.getElementById('glossary-list').innerHTML = terms.map(t =>
+        `<div class="glossary-term"><div class="term-info"><span class="en">${t.english}</span> &rarr; <span class="zh">${t.chinese}</span>${t.notes?`<span class="note">${t.notes}</span>`:''}</div></div>`
+    ).join('');
+}
+function filterGlossary() {
+    const q = document.getElementById('glossary-search').value.toLowerCase();
+    renderGlossary(glossaryData.filter(t => t.english.toLowerCase().includes(q) || t.chinese.includes(q)));
+}
+function toggleGlossary() { document.getElementById('glossary-sidebar').classList.toggle('open'); }
+
+// Glossary Editor
+function renderEditorGlossary(terms) {
+    document.getElementById('gl-editor-list').innerHTML = terms.map(t =>
+        `<div class="glossary-term"><div class="term-info"><span class="en">${t.english}</span> &rarr; <span class="zh">${t.chinese}</span>${t.notes?`<span class="note">${t.notes}</span>`:''}</div><div class="term-actions"><button class="btn btn-danger btn-sm" onclick="deleteGlossaryTerm('${t.english.replace(/'/g,"\\'")}')">Remove</button></div></div>`
+    ).join('');
+}
+function filterEditorGlossary() {
+    const q = document.getElementById('gl-editor-search').value.toLowerCase();
+    renderEditorGlossary(glossaryData.filter(t => t.english.toLowerCase().includes(q) || t.chinese.includes(q)));
+}
+async function addGlossaryTerm() {
+    const english = document.getElementById('gl-english').value.trim();
+    const chinese = document.getElementById('gl-chinese').value.trim();
+    const notes = document.getElementById('gl-notes').value.trim();
+    const category = document.getElementById('gl-category').value;
+    if (!english || !chinese) { alert('English and Chinese are required.'); return; }
+    const res = await fetch('/api/glossary', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({english,chinese,notes,category}) });
+    if (res.ok) { const d = await res.json(); glossaryData = d.terms; renderEditorGlossary(glossaryData); renderGlossary(glossaryData); document.getElementById('gl-english').value=''; document.getElementById('gl-chinese').value=''; document.getElementById('gl-notes').value=''; }
+    else { const e = await res.json(); alert(e.detail); }
+}
+async function deleteGlossaryTerm(english) {
+    if (!confirm(`Remove "${english}" from glossary?`)) return;
+    const res = await fetch('/api/glossary/'+encodeURIComponent(english), {method:'DELETE'});
+    if (res.ok) { const d = await res.json(); glossaryData = d.terms; renderEditorGlossary(glossaryData); renderGlossary(glossaryData); }
+}
+
+// ========== TEAM ==========
+async function loadTeam() {
+    if (currentUser.role !== 'coordinator') return;
+    try { const r = await fetch('/api/team'); const d = await r.json(); teamData = d.members||[]; renderTeam(); populateGovernorDropdowns(); } catch(e) {}
+}
+function renderTeam() {
+    document.getElementById('team-table-body').innerHTML = teamData.map(m =>
+        `<tr><td>${m.name}</td><td>${m.role.replace('_',' ')}</td><td><button class="btn btn-danger btn-sm" onclick="removeTeamMember('${m.name.replace(/'/g,"\\'")}')">Remove</button></td></tr>`
+    ).join('');
+}
+async function addTeamMember() {
+    const name = document.getElementById('tm-name').value.trim();
+    const role = document.getElementById('tm-role').value;
+    if (!name) { alert('Name is required.'); return; }
+    const res = await fetch('/api/team', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,role}) });
+    if (res.ok) { const d = await res.json(); teamData = d.members; renderTeam(); populateGovernorDropdowns(); document.getElementById('tm-name').value=''; }
+    else { const e = await res.json(); alert(e.detail); }
+}
+async function removeTeamMember(name) {
+    if (!confirm(`Remove ${name} from the team?`)) return;
+    const res = await fetch('/api/team/'+encodeURIComponent(name), {method:'DELETE'});
+    if (res.ok) { const d = await res.json(); teamData = d.members; renderTeam(); populateGovernorDropdowns(); }
+}
+function populateGovernorDropdowns() {
+    const govs = teamData.filter(m => m.role === 'governor');
+    const opts = govs.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+    document.getElementById('gov-a').innerHTML = opts;
+    document.getElementById('gov-b').innerHTML = opts;
+}
+function onGovModelChange() {
+    document.getElementById('gov-b-group').style.display = document.getElementById('gov-model').value === 'dual' ? 'block' : 'none';
+}
+
+// ========== DOCUMENTS ==========
+async function loadDocuments() {
+    try {
+        const res = await fetch('/api/documents');
+        const data = await res.json();
+        const docs = data.documents || [];
+        const tbody = document.getElementById('doc-queue-body');
+        const emptyMsg = document.getElementById('doc-queue-empty');
+        if (docs.length === 0) { tbody.innerHTML = ''; emptyMsg.style.display = 'block'; return; }
+        emptyMsg.style.display = 'none';
+        const stageNames = {1:'Translation',2:'Review',3:'Editing',4:'Typesetting',5:'Proofread'};
+        tbody.innerHTML = docs.map(d => {
+            const stageName = stageNames[d.current_stage] || d.current_stage;
+            const badge = d.status === 'completed' ? '<span class="badge badge-done">Completed</span>' : `<span class="badge badge-stage">Stage ${d.current_stage}: ${stageName}</span>`;
+            const canAct = canUserAct(d);
+            const actionBtn = canAct ? `<button class="btn btn-primary btn-sm" onclick="openDocument(${d.id})">Open</button>` : `<button class="btn btn-sm" onclick="openDocument(${d.id})">View</button>`;
+            return `<tr><td>${d.title}</td><td>${badge}</td><td>${d.status}</td><td>${d.governor_a||'-'}</td><td>${d.governor_b||'-'}</td><td>${actionBtn}</td></tr>`;
+        }).join('');
+    } catch(e) { console.error(e); }
+}
+
+function canUserAct(doc) {
+    if (currentUser.role === 'coordinator') return true;
+    if (doc.status === 'completed') return false;
+    if (doc.current_stage === 2 && doc.governor_a === currentUser.name) return true;
+    if (doc.current_stage === 5) {
+        if (doc.governor_model === 'single' && doc.governor_a === currentUser.name) return true;
+        if (doc.governor_model === 'dual' && doc.governor_b === currentUser.name) return true;
+    }
+    return false;
+}
+
+async function openDocument(docId) {
+    currentDocId = docId;
+    const res = await fetch(`/api/documents/${docId}`);
+    currentDoc = await res.json();
+    showTab('doc-view');
+    document.getElementById('tab-doc-view').classList.add('active');
+    renderDocument(currentDoc);
+}
+
+// ========== RENDER DOCUMENT ==========
+function updateProgress(stage, completed) {
+    for (let i = 1; i <= 5; i++) {
+        const c = document.getElementById(`circle-${i}`);
+        const l = document.getElementById(`label-${i}`);
+        c.className = 'stage-circle'; l.className = 'stage-label';
+        c.textContent = i;
+        if (i < stage || (i === stage && completed)) { c.classList.add('completed'); c.textContent = '\u2713'; l.classList.add('completed'); }
+        else if (i === stage) { c.classList.add('active'); l.classList.add('active'); }
+        if (i < 5) { const cn = document.getElementById(`conn-${i}`); cn.className = 'stage-connector'; if (i < stage || (i === stage && completed)) cn.classList.add('completed'); }
+    }
+}
+
+function renderDocument(doc) {
+    const s1 = doc.stages.find(s => s.stage === 1);
+    const s2 = doc.stages.find(s => s.stage === 2);
+    const s3 = doc.stages.find(s => s.stage === 3);
+    const s4 = doc.stages.find(s => s.stage === 4);
+    const s5 = doc.stages.find(s => s.stage === 5);
+    const isCompleted = doc.status === 'completed';
+
+    // Hide all action panels
+    ['review-panel','editing-panel','proofread-panel','result-panel'].forEach(id => document.getElementById(id).classList.remove('visible'));
+    document.getElementById('side-by-side').style.display = 'none';
+    document.getElementById('three-way').style.display = 'none';
+
+    // Source panel
+    document.getElementById('panel-source').textContent = doc.source_text;
+
+    if (doc.current_stage === 2 && !isCompleted) {
+        updateProgress(2, false);
+        document.getElementById('side-by-side').style.display = 'grid';
+        const s1text = s1 ? cleanTranslationText(s1.output_text) : '';
+        document.getElementById('panel-trans').textContent = s1text;
+        document.getElementById('panel-trans-header').textContent = 'Chinese Translation (Stage 1 \u2014 AI)';
+        if (s1) document.getElementById('edit-textarea').value = s1text;
+        document.getElementById('review-panel').classList.add('visible');
+
+    } else if (doc.current_stage === 3 && !isCompleted) {
+        updateProgress(3, false);
+        document.getElementById('side-by-side').style.display = 'grid';
+        const s2text = s2 ? cleanTranslationText(s2.output_text) : '';
+        document.getElementById('panel-trans').textContent = s2text;
+        document.getElementById('panel-trans-header').textContent = 'Chinese Translation (Stage 2 \u2014 Reviewed)';
+        document.getElementById('editing-panel').classList.add('visible');
+
+    } else if (doc.current_stage === 5 && !isCompleted) {
+        updateProgress(4, true);
+        document.getElementById('three-way').style.display = 'grid';
+        document.getElementById('tw-source').textContent = doc.source_text;
+        document.getElementById('tw-approved').textContent = s2 ? cleanTranslationText(s2.output_text) : '';
+        const typesetText = s4 ? cleanTranslationText(s4.output_text) : '';
+        document.getElementById('tw-typeset').textContent = typesetText;
+        document.getElementById('proof-edit-textarea').value = typesetText;
+        document.getElementById('proofread-panel').classList.add('visible');
+
+    } else if (isCompleted) {
+        updateProgress(5, true);
+        document.getElementById('side-by-side').style.display = 'grid';
+        let finalText = '';
+        if (s5) finalText = cleanTranslationText(s5.output_text);
+        else if (s4) finalText = cleanTranslationText(s4.output_text);
+        else if (s3) finalText = cleanTranslationText(s3.output_text);
+        document.getElementById('panel-trans').textContent = finalText;
+        document.getElementById('panel-trans-header').textContent = 'Final Translation (Completed)';
+        document.getElementById('result-panel').classList.add('visible');
+
+        // Render Stage 3 changes
+        if (s3) {
+            let d3; try { d3 = JSON.parse(s3.output_text); } catch(e) { d3 = {}; }
+            document.getElementById('changes-list').innerHTML = (d3.changes_made||[]).map(c => `<li>${c}</li>`).join('') || '<li>No changes.</li>';
+            const cl = d3.checklist || {};
+            document.getElementById('ai-checklist').innerHTML = `
+                <div class="checklist-item"><h4>Accuracy 准确</h4><p>${cl.accuracy||'N/A'}</p></div>
+                <div class="checklist-item"><h4>Beauty 文风优美</h4><p>${cl.beauty||'N/A'}</p></div>
+                <div class="checklist-item"><h4>Consistency 风格一致</h4><p>${cl.consistency||'N/A'}</p></div>`;
+        }
+        // Render Stage 4 issues
+        if (s4) {
+            let d4; try { d4 = JSON.parse(s4.output_text); } catch(e) { d4 = {}; }
+            document.getElementById('typeset-issues').innerHTML = (d4.issues_found||[]).map(c => `<li>${c}</li>`).join('') || '<li>No formatting issues found.</li>';
+        }
+    }
+}
+
+// ========== STAGE ACTIONS ==========
+async function startTranslation() {
+    const title = document.getElementById('doc-title').value.trim();
+    const sourceLang = document.getElementById('source-lang').value;
+    const sourceText = document.getElementById('source-text').value.trim();
+    const govModel = document.getElementById('gov-model').value;
+    const govA = document.getElementById('gov-a').value;
+    const govB = govModel === 'dual' ? document.getElementById('gov-b').value : null;
+    if (!title || !sourceText) { alert('Please enter a title and source text.'); return; }
+    if (!govA) { alert('Please select Governor A.'); return; }
+    document.getElementById('btn-translate').disabled = true;
+    document.getElementById('spinner-translate').classList.add('visible');
+    try {
+        const res = await fetch('/api/documents', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title, source_text:sourceText, source_lang:sourceLang, governor_model:govModel, governor_a:govA, governor_b:govB}) });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+        const doc = await res.json();
+        currentDocId = doc.id; currentDoc = doc;
+        showTab('doc-view');
+        document.getElementById('tab-doc-view').classList.add('active');
+        renderDocument(doc);
+    } catch(e) { alert('Error: '+e.message); }
+    finally { document.getElementById('btn-translate').disabled = false; document.getElementById('spinner-translate').classList.remove('visible'); }
+}
+
+function onDecisionChange(v) {
+    document.getElementById('edit-textarea').classList.toggle('visible', v === 'edit');
+    const btn = document.getElementById('btn-review');
+    btn.disabled = false;
+    btn.className = 'btn ' + (v === 'reject' ? 'btn-reject' : 'btn-approve');
+    btn.textContent = v === 'reject' ? 'Reject' : v === 'edit' ? 'Submit Edited Translation' : 'Approve Translation';
+}
+
+async function submitReview() {
+    const decision = document.querySelector('input[name="decision"]:checked')?.value;
+    if (!decision) return;
+    const body = {
+        decision,
+        edited_text: decision === 'edit' ? document.getElementById('edit-textarea').value.trim() : null,
+        notes: document.getElementById('review-notes').value.trim(),
+        accuracy_rating: document.getElementById('chk-accuracy').value || null,
+        accuracy_notes: document.getElementById('chk-accuracy-notes').value.trim() || null,
+        beauty_rating: document.getElementById('chk-beauty').value || null,
+        beauty_notes: document.getElementById('chk-beauty-notes').value.trim() || null,
+        consistency_rating: document.getElementById('chk-consistency').value || null,
+        consistency_notes: document.getElementById('chk-consistency-notes').value.trim() || null,
+    };
+    if (decision === 'edit' && !body.edited_text) { alert('Please enter your edited translation.'); return; }
+    document.getElementById('btn-review').disabled = true;
+    try {
+        const res = await fetch(`/api/documents/${currentDocId}/review`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+        const doc = await res.json();
+        if (decision === 'reject') { alert('Translation rejected. You may review again.'); document.getElementById('btn-review').disabled = false; }
+        else { currentDoc = doc; renderDocument(doc); }
+    } catch(e) { alert('Error: '+e.message); document.getElementById('btn-review').disabled = false; }
+}
+
+async function runEditing() {
+    document.getElementById('btn-edit').disabled = true;
+    document.getElementById('spinner-edit').classList.add('visible');
+    try {
+        const res = await fetch(`/api/documents/${currentDocId}/edit`, {method:'POST'});
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+        currentDoc = await res.json();
+        renderDocument(currentDoc);
+    } catch(e) { alert('Error: '+e.message); }
+    finally { document.getElementById('btn-edit').disabled = false; document.getElementById('spinner-edit').classList.remove('visible'); }
+}
+
+function onProofDecisionChange(v) {
+    document.getElementById('proof-edit-textarea').classList.toggle('visible', v === 'edit');
+    const btn = document.getElementById('btn-proofread');
+    btn.disabled = false;
+    btn.className = 'btn ' + (v === 'reject' ? 'btn-reject' : 'btn-approve');
+    btn.textContent = v === 'reject' ? 'Reject' : v === 'edit' ? 'Submit Edited Text' : 'Approve & Complete';
+}
+
+async function submitProofread() {
+    const decision = document.querySelector('input[name="proof-decision"]:checked')?.value;
+    if (!decision) return;
+    const body = {
+        decision,
+        edited_text: decision === 'edit' ? document.getElementById('proof-edit-textarea').value.trim() : null,
+        notes: document.getElementById('proof-notes').value.trim(),
+    };
+    if (decision === 'edit' && !body.edited_text) { alert('Please enter your edited text.'); return; }
+    document.getElementById('btn-proofread').disabled = true;
+    try {
+        const res = await fetch(`/api/documents/${currentDocId}/proofread`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+        currentDoc = await res.json();
+        if (decision === 'reject') { alert('Rejected. You may review again.'); document.getElementById('btn-proofread').disabled = false; }
+        else { renderDocument(currentDoc); }
+    } catch(e) { alert('Error: '+e.message); document.getElementById('btn-proofread').disabled = false; }
+}
+
+function cleanTranslationText(raw) {
+    let text = raw;
+    // Strip ```json ... ``` markdown fences
+    text = text.replace(/^```(?:json)?\s*\n?/g, '').replace(/\n?```\s*$/g, '').trim();
+    // If it looks like JSON, extract the text value
+    if (text.startsWith('{')) {
+        try {
+            const d = JSON.parse(text);
+            text = d.typeset_text || d.edited_text || d.translation || text;
+            // Check if extracted value is itself JSON-wrapped
+            if (typeof text === 'string' && text.trim().startsWith('```')) {
+                text = text.replace(/^```(?:json)?\s*\n?/g, '').replace(/\n?```\s*$/g, '').trim();
+                if (text.startsWith('{')) {
+                    try { const d2 = JSON.parse(text); text = d2.typeset_text || d2.edited_text || d2.translation || text; } catch(e) {}
+                }
+            }
+        } catch(e) {}
+    }
+    // Replace literal \n with actual newlines
+    text = text.replace(/\\n/g, '\n');
+    return text;
+}
+
+// ========== DASHBOARD ==========
+async function loadDashboard() {
+    try {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+        document.getElementById('dash-total').textContent = data.total;
+        document.getElementById('dash-progress').textContent = data.in_progress;
+        document.getElementById('dash-completed').textContent = data.completed;
+
+        const stageNames = data.stage_names || {1:'Translation',2:'Review',3:'Editing',4:'Typesetting',5:'Proofread'};
+        const stageColors = {1:'#e8f0e8',2:'#fef9e7',3:'#e8f0e8',4:'#e8f0e8',5:'#fef9e7'};
+        document.getElementById('dash-stages').innerHTML = Object.entries(stageNames).map(([num,name]) => {
+            const count = (data.by_stage||{})[num] || 0;
+            return `<div class="checklist-item" style="background:${stageColors[num]||'#faf8f5'}; text-align:center"><h4>${name}</h4><p style="font-size:20px; font-weight:700">${count}</p></div>`;
+        }).join('');
+
+        const models = data.models || {};
+        const settings = data.pipeline_settings || {};
+        document.getElementById('dash-models').innerHTML = [
+            {stage:'Stage 1: Translation', key:'1'},
+            {stage:'Stage 3: Editing', key:'3'},
+            {stage:'Stage 4: Typesetting', key:'4'},
+        ].map(s => {
+            const modelKey = settings[s.key] || 'claude';
+            const modelLabel = models[modelKey] || modelKey;
+            return `<div class="checklist-item"><h4>${s.stage}</h4><p style="font-size:13px; color:#5a3a28; font-weight:600">${modelLabel}</p></div>`;
+        }).join('');
+    } catch(e) { console.error(e); }
+}
+
+// ========== PIPELINE SETTINGS ==========
+async function loadPipelineSettings() {
+    try {
+        const res = await fetch('/api/pipeline-settings');
+        const data = await res.json();
+        const settings = data.settings || {};
+        const models = data.models || [];
+
+        ['ps-stage1','ps-stage3','ps-stage4'].forEach(id => {
+            const select = document.getElementById(id);
+            select.innerHTML = models.map(m =>
+                `<option value="${m.id}" ${!m.available?'disabled':''}>${m.label}${!m.available?' (no API key)':''}</option>`
+            ).join('');
+        });
+
+        document.getElementById('ps-stage1').value = settings['1'] || 'claude';
+        document.getElementById('ps-stage3').value = settings['3'] || 'claude';
+        document.getElementById('ps-stage4').value = settings['4'] || 'claude';
+
+        document.getElementById('models-table-body').innerHTML = models.map(m =>
+            `<tr><td>${m.label}</td><td>${m.provider}</td><td>${m.available ? '<span class="badge badge-done">Active</span>' : '<span class="badge badge-pending">No API Key</span>'}</td></tr>`
+        ).join('');
+    } catch(e) { console.error(e); }
+}
+
+async function savePipelineSettings() {
+    const body = {
+        stage_1: document.getElementById('ps-stage1').value,
+        stage_3: document.getElementById('ps-stage3').value,
+        stage_4: document.getElementById('ps-stage4').value,
+    };
+    try {
+        const res = await fetch('/api/pipeline-settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        if (res.ok) {
+            const confirm = document.getElementById('ps-confirm');
+            confirm.style.display = 'inline';
+            setTimeout(() => { confirm.style.display = 'none'; }, 2000);
+        } else { const e = await res.json(); alert(e.detail); }
+    } catch(e) { alert('Error: '+e.message); }
+}
+
+function copyFinalTranslation() {
+    const text = document.getElementById('panel-trans').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const confirm = document.getElementById('copy-confirm');
+        confirm.style.display = 'inline';
+        setTimeout(() => { confirm.style.display = 'none'; }, 2000);
+    });
+}
+</script>
+</body>
+</html>
