@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>巴哈伊华语翻译工作台 - 神圣经典翻译流水线，结合人工审核治理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            line-height: 1.6;
+            color: #222;
+            background-color: #ffffff;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .back-nav {
+            margin-bottom: 20px;
+        }
+
+        .back-nav a {
+            color: #007BFF;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+
+        .lang-switcher {
+            float: right;
+            font-size: 0.95rem;
+        }
+
+        .lang-switcher a {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .lang-switcher a:hover {
+            text-decoration: underline;
+        }
+
+        .project-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #2196F3, #1565C0);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .project-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .project-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .demo-links {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .demo-btn {
+            display: inline-block;
+            background-color: #2196F3;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 0 10px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .demo-btn:hover {
+            background-color: #1565C0;
+        }
+
+        .demo-btn.secondary {
+            background-color: #1976D2;
+        }
+
+        .demo-btn.secondary:hover {
+            background-color: #0D47A1;
+        }
+
+        .content-section {
+            margin: 40px 0;
+            padding: 30px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 5px solid #2196F3;
+        }
+
+        .content-section h2 {
+            color: #2196F3;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .content-section h3 {
+            color: #333;
+            margin: 20px 0 10px 0;
+            font-size: 1.3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .feature-item h4 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .tech-item {
+            background-color: #2196F3;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .code-block {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #2196F3;
+        }
+
+        .metric-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .governance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .governance-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #2196F3;
+        }
+
+        .governance-card h4 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .project-header h1 {
+                font-size: 2rem;
+            }
+
+            .project-header p {
+                font-size: 1rem;
+            }
+
+            .badges {
+                justify-content: center;
+            }
+
+            .demo-btn {
+                margin: 5px;
+                padding: 10px 20px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="back-nav">
+            <a href="https://github.com/lyven81/bahai-translation-workbench">&larr; 返回代码库</a>
+            <span class="lang-switcher"><a href="showcase.html">English</a></span>
+        </nav>
+
+        <div class="project-header">
+            <h1>巴哈伊华语翻译工作台</h1>
+            <p>神圣经典翻译流水线，结合人工审核治理</p>
+
+            <div class="badges">
+                <span class="badge">Claude Sonnet 4.6</span>
+                <span class="badge">GPT-4</span>
+                <span class="badge">Gemini</span>
+                <span class="badge">DeepSeek</span>
+                <span class="badge">FastAPI</span>
+                <span class="badge">SQLite</span>
+                <span class="badge">Docker</span>
+            </div>
+        </div>
+
+        <div class="demo-links">
+            <a href="https://bahai-translation-workbench-522143897885.asia-southeast1.run.app" target="_blank" class="demo-btn">启动应用</a>
+            <a href="https://github.com/lyven81/bahai-translation-workbench" target="_blank" class="demo-btn secondary">查看源代码</a>
+        </div>
+
+        <div class="content-section">
+            <h2>项目概述</h2>
+            <p><strong>问题：</strong>目前27位译者的团队每年大约只能完成1本书的翻译。协调审核、编辑和校对的工作依赖电子邮件和共享文档，没有结构化的流程、没有质量核查清单、也没有统一的术语库。翻译质量很大程度上取决于个人判断，难以维持巴哈伊圣作所要求的三项标准：准确、文风优美、风格一致。</p>
+
+            <p><strong>解决方案：</strong>巴哈伊华语翻译工作台是一个结合AI辅助与人工治理的翻译流水线。它实施5个阶段的工作流程 &mdash; 翻译、审核、编辑、排版、校对 &mdash; 由AI处理繁重工作，但人工审核员在第2阶段（审核）和第5阶段（校对）做出最终决定。</p>
+
+            <h3>三项翻译标准</h3>
+            <p>以学习材料<em>《关于语言和翻译指引选编》</em>为基础，该选编涵盖巴哈伊圣作中9个翻译指引章节，工作台在每个审核关卡执行三项质量标准：</p>
+            <ul>
+                <li><strong>准确：</strong>忠实于圣典原文的含义</li>
+                <li><strong>文风优美：</strong>措辞典雅庄重，符合神圣经典的风格</li>
+                <li><strong>风格一致：</strong>整部作品的术语、语调和语体保持统一</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>应用功能</h2>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h4>5阶段流水线</h4>
+                    <p>结构化工作流程：翻译 &rarr; 审核 &rarr; 编辑 &rarr; 排版 &rarr; 校对。每个阶段有指定的角色和明确的输入/输出要求。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>姓名登录</h4>
+                    <p>简单的姓名登录，无需密码。每位用户被分配一个角色（协调员、审核员、译者、术语专员或最终审阅人），决定其权限和职责。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>单人 / 双人审核员模式</h4>
+                    <p>短篇文档由单一审核员负责第2和第5阶段。长篇作品则采用双人审核员模式：审核员A负责第2阶段（审核），审核员B负责第5阶段（校对）。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>三项标准核查清单</h4>
+                    <p>在第2阶段，审核员根据三项标准审查AI翻译：准确、文风优美、风格一致。每项必须明确通过后方可推进。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>多模型选择器</h4>
+                    <p>协调员为流水线的每个阶段选择使用哪个 LLM 模型。支持 Claude Sonnet、GPT-4、Gemini 和 DeepSeek &mdash; 让团队能够比较并选择最适合的模型。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>流水线仪表板</h4>
+                    <p>可视化展示所有进行中的翻译流水线，显示当前阶段、指派的审核员、已选模型以及每篇文档的进度状态。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>应用内术语编辑器</h4>
+                    <p>术语专员在应用内维护一份已批准的巴哈伊术语翻译词汇表。该词汇表会注入到AI提示中，确保所有翻译的术语一致性。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>团队管理</h4>
+                    <p>协调员管理团队成员、分配角色并将人员配置到特定的流水线阶段。支持27位译者在多个角色中的完整组织架构。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>AI 整合</h2>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h4>多模型适配器</h4>
+                    <p>统一的适配层支持 Claude Sonnet 4.6、GPT-4、Gemini 和 DeepSeek。协调员在流水线层级为每个阶段设定模型，实现翻译质量的并排比较。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>提示中的三项标准框架</h4>
+                    <p>每个AI提示都包含明确指示，要求评估和优化准确性、文风优美和风格一致性 &mdash; 这三项源自巴哈伊圣作的标准。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>术语词汇表注入</h4>
+                    <p>已批准的巴哈伊术语词汇表会自动注入到AI提示中，确保关键的宗教和哲学术语在所有流水线阶段中翻译一致。</p>
+                </div>
+
+                <div class="feature-item">
+                    <h4>第4阶段排版验证</h4>
+                    <p>在排版阶段，AI验证华语神圣经典特有的格式、标点和版面规范，在最终校对前标记问题。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>治理模式</h2>
+
+            <div class="governance-grid">
+                <div class="governance-card">
+                    <h4>单人审核员模式</h4>
+                    <p>适用于较短的文档，审核员A同时负责第2阶段（审核）和第5阶段（校对）。由一人保持对整个翻译的完整把握，提供端到端的质量控制。</p>
+                </div>
+
+                <div class="governance-card">
+                    <h4>双人审核员模式</h4>
+                    <p>适用于较长的作品，审核员A负责第2阶段（审核），审核员B负责第5阶段（校对）。分散工作量的同时确保最终关卡有全新的视角。</p>
+                </div>
+            </div>
+
+            <h3>团队架构</h3>
+            <p>27人的翻译团队按专业角色组织：</p>
+            <ul>
+                <li><strong>18位审核员：</strong>资深译者，在第2和第5阶段审核和批准翻译</li>
+                <li><strong>4位术语专员：</strong>维护词汇表，确保术语一致性</li>
+                <li><strong>3位协调员：</strong>设置流水线、指定模型、管理团队分配</li>
+                <li><strong>2位最终审阅人：</strong>在出版前提供最后一道质量关卡</li>
+            </ul>
+
+            <h3>预期成果</h3>
+            <p>通过结构化的流水线和AI辅助，团队可以运行<strong>4至6条并行流水线</strong>，将产出从每年1本书提升到预计<strong>每年4至6本书</strong>。</p>
+        </div>
+
+        <div class="content-section">
+            <h2>技术架构</h2>
+
+            <h3>后端</h3>
+            <div class="tech-stack">
+                <span class="tech-item">FastAPI</span>
+                <span class="tech-item">Python</span>
+                <span class="tech-item">SQLite</span>
+                <span class="tech-item">Multi-LLM Adapter</span>
+            </div>
+
+            <h3>前端</h3>
+            <div class="tech-stack">
+                <span class="tech-item">Vanilla HTML</span>
+                <span class="tech-item">Vanilla JavaScript</span>
+                <span class="tech-item">CSS</span>
+            </div>
+
+            <h3>部署</h3>
+            <div class="tech-stack">
+                <span class="tech-item">Docker</span>
+                <span class="tech-item">Google Cloud Run</span>
+            </div>
+
+            <h3>系统设计</h3>
+            <ul>
+                <li><strong>FastAPI 后端：</strong>处理所有 API 路由、流水线编排和 LLM 调用</li>
+                <li><strong>SQLite 数据库：</strong>存储用户、流水线、词汇表术语和翻译历史</li>
+                <li><strong>多模型适配器：</strong>Claude、GPT-4、Gemini 和 DeepSeek API 的统一接口</li>
+                <li><strong>静态前端：</strong>由 FastAPI 直接提供 Vanilla HTML/JS，无需构建步骤</li>
+                <li><strong>Docker 容器：</strong>在 Google Cloud Run 上进行单容器部署，通过环境变量配置 API 密钥</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>安装指南</h2>
+
+            <h3>前置要求</h3>
+            <ul>
+                <li><strong>Python 3.10+</strong> 及 pip</li>
+                <li>至少一个 LLM 供应商的 API 密钥（Claude、GPT-4、Gemini 或 DeepSeek）</li>
+            </ul>
+
+            <h3>快速开始</h3>
+            <div class="code-block">
+# 克隆代码库
+git clone https://github.com/lyven81/bahai-translation-workbench.git
+cd bahai-translation-workbench
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 设置环境变量
+cp .env.example .env
+# 在 .env 文件中添加你的 API 密钥
+
+# 运行应用
+python app.py
+            </div>
+
+            <h3>测试登录</h3>
+            <p>以 <strong>Zhang Wei</strong>（协调员角色）登录，即可探索完整的流水线设置、团队管理和模型选择功能。</p>
+        </div>
+
+        <div class="content-section">
+            <h2>关键指标</h2>
+
+            <div class="metrics">
+                <div class="metric-card">
+                    <div class="metric-number">5</div>
+                    <div class="metric-label">流水线阶段</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">4</div>
+                    <div class="metric-label">LLM 模型</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">20</div>
+                    <div class="metric-label">词汇表术语</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">6</div>
+                    <div class="metric-label">团队成员</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">3</div>
+                    <div class="metric-label">质量标准</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-links">
+            <a href="https://bahai-translation-workbench-522143897885.asia-southeast1.run.app" target="_blank" class="demo-btn">启动应用</a>
+            <a href="https://github.com/lyven81/bahai-translation-workbench" target="_blank" class="demo-btn secondary">查看源代码</a>
+        </div>
+
+        <nav class="back-nav" style="text-align: center; margin-top: 40px;">
+            <a href="https://github.com/lyven81/bahai-translation-workbench">&larr; 返回代码库</a>
+        </nav>
+    </div>
+</body>
+</html>
