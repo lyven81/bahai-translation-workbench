@@ -420,22 +420,24 @@
             <ul>
                 <li><strong>FastAPI 后端：</strong>处理所有 API 路由、流水线编排和 LLM 调用</li>
                 <li><strong>SQLite 数据库：</strong>存储用户、流水线、词汇表术语和翻译历史</li>
-                <li><strong>多模型适配器：</strong>Claude、GPT-4、Gemini 和 DeepSeek API 的统一接口</li>
+                <li><strong>多模型适配器：</strong>Claude、GPT-4、Gemini 和 DeepSeek API 的统一接口（公共演示中仅 Claude 启用；自行部署时可启用其他模型）</li>
                 <li><strong>静态前端：</strong>由 FastAPI 直接提供 Vanilla HTML/JS，无需构建步骤</li>
-                <li><strong>Docker 容器：</strong>在 Google Cloud Run 上进行单容器部署，通过环境变量配置 API 密钥</li>
+                <li><strong>Docker 容器：</strong>在 Google Cloud Run 上进行单容器部署。公共演示采用"自带密钥"模式——访客在浏览器中提供自己的 Anthropic API 密钥，服务器不保存任何密钥</li>
             </ul>
         </div>
 
         <div class="content-section">
             <h2>安装指南</h2>
 
-            <h3>前置要求</h3>
+            <h3>试用在线演示</h3>
             <ul>
-                <li><strong>Python 3.10+</strong> 及 pip</li>
-                <li>至少一个 LLM 供应商的 API 密钥（Claude、GPT-4、Gemini 或 DeepSeek）</li>
+                <li>一把免费的 <strong>Anthropic API 密钥</strong>——请前往 <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> 注册（约需 2 分钟；Anthropic 会为新账户提供少量免费额度）</li>
+                <li>打开在线应用，将密钥粘贴到页面顶部的 API Key 栏，并以 <strong>Zhang Wei</strong>（协调员）身份登录，即可体验完整流程</li>
+                <li>您的密钥仅保存在您的浏览器中（localStorage），并直接发送到 Anthropic——我们的服务器绝不会存储它</li>
             </ul>
 
-            <h3>快速开始</h3>
+            <h3>自行部署（可选）</h3>
+            <p style="font-size: 14px; color: #555; margin-bottom: 12px;">如果您希望自行部署、启用全部四个 LLM 供应商、并关闭"自带密钥"提示，可克隆代码库并通过 .env 提供服务器端密钥：</p>
             <div class="code-block">
 # 克隆代码库
 git clone https://github.com/lyven81/bahai-translation-workbench.git
@@ -446,7 +448,7 @@ pip install -r requirements.txt
 
 # 设置环境变量
 cp .env.example .env
-# 在 .env 文件中添加你的 API 密钥
+# 在 .env 文件中添加你的 API 密钥（ANTHROPIC_API_KEY、OPENAI_API_KEY、GOOGLE_API_KEY、DEEPSEEK_API_KEY）
 
 # 运行应用
 python app.py

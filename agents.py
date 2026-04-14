@@ -5,7 +5,9 @@ import re
 import anthropic
 
 # ---------------------------------------------------------------------------
-# Multi-LLM Adapter
+# Multi-LLM Adapter — Demo mode: Claude only
+# Users bring their own Anthropic API key via the frontend (X-API-Key header).
+# Other providers are defined for future use but disabled in the public demo.
 # ---------------------------------------------------------------------------
 
 AVAILABLE_MODELS = {
@@ -17,32 +19,53 @@ AVAILABLE_MODELS = {
 
 DEFAULT_MODEL = "claude"
 
+# In demo mode, only the Anthropic provider is enabled. Other providers are
+# listed in the UI but disabled so users understand what the full app supports.
+DEMO_MODE_ENABLED_PROVIDERS = {"anthropic"}
+
 
 def get_available_models():
-    """Return models with availability status based on configured API keys."""
+    """Return models with availability info.
+    In demo mode: Claude is always "available" (user brings their own key).
+    Other providers are "disabled" with a reason shown in the UI.
+    """
     result = []
-    key_map = {
-        "anthropic": "ANTHROPIC_API_KEY",
-        "openai": "OPENAI_API_KEY",
-        "google": "GOOGLE_API_KEY",
-        "deepseek": "DEEPSEEK_API_KEY",
-    }
     for key, info in AVAILABLE_MODELS.items():
-        env_key = key_map.get(info["provider"], "")
-        available = bool(os.environ.get(env_key))
-        result.append({"id": key, "label": info["label"], "provider": info["provider"], "available": available})
+        provider = info["provider"]
+        enabled = provider in DEMO_MODE_ENABLED_PROVIDERS
+        entry = {
+            "id": key,
+            "label": info["label"],
+            "provider": provider,
+            "available": enabled,
+        }
+        if not enabled:
+            entry["reason"] = "Disabled in public demo. Available in self-hosted version."
+        result.append(entry)
     return result
 
 
-def _call_llm(system_prompt, user_message, model_key=None, temperature=0.3, max_tokens=4096):
-    """Unified LLM call that routes to the correct provider."""
+def _call_llm(system_prompt, user_message, model_key=None, temperature=0.3, max_tokens=4096, api_key=None):
+    """Unified LLM call that routes to the correct provider.
+    In demo mode, only the Anthropic provider is active. The caller's api_key
+    is required and passed directly to Anthropic (never stored on the server).
+    """
     model_key = model_key or DEFAULT_MODEL
     model_info = AVAILABLE_MODELS.get(model_key, AVAILABLE_MODELS[DEFAULT_MODEL])
     provider = model_info["provider"]
     model_id = model_info["model_id"]
 
+    if provider not in DEMO_MODE_ENABLED_PROVIDERS:
+        raise ValueError(
+            f"Demo mode supports Claude (Anthropic) only. "
+            f"The selected model ({model_info['label']}) is disabled in this deployment. "
+            f"Please set all pipeline stages to Claude in Pipeline Settings."
+        )
+
     if provider == "anthropic":
-        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+        if not api_key:
+            raise ValueError("Anthropic API key is required. Please enter your key in the app.")
+        client = anthropic.Anthropic(api_key=api_key)
         response = client.messages.create(
             model=model_id, max_tokens=max_tokens, temperature=temperature,
             system=system_prompt,
@@ -50,39 +73,7 @@ def _call_llm(system_prompt, user_message, model_key=None, temperature=0.3, max_
         )
         return response.content[0].text, model_id
 
-    elif provider == "openai":
-        from openai import OpenAI
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        response = client.chat.completions.create(
-            model=model_id, max_tokens=max_tokens, temperature=temperature,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
-        )
-        return response.choices[0].message.content, model_id
-
-    elif provider == "google":
-        import google.generativeai as genai
-        genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-        model = genai.GenerativeModel(model_id)
-        response = model.generate_content(f"{system_prompt}\n\n{user_message}")
-        return response.text, model_id
-
-    elif provider == "deepseek":
-        from openai import OpenAI
-        client = OpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com")
-        response = client.chat.completions.create(
-            model=model_id, max_tokens=max_tokens, temperature=temperature,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
-        )
-        return response.choices[0].message.content, model_id
-
-    else:
-        raise ValueError(f"Unknown provider: {provider}")
+    raise ValueError(f"Unknown provider: {provider}")
 
 
 # ---------------------------------------------------------------------------
@@ -181,13 +172,13 @@ Return your output as JSON with these keys:
 Return ONLY the JSON object, no other text."""
 
 
-def translation_agent(source_text, source_lang, glossary, model_key=None):
+def translation_agent(source_text, source_lang, glossary, model_key=None, api_key=None):
     glossary_block = format_glossary_for_prompt(glossary)
     system_prompt = TRANSLATION_SYSTEM_PROMPT.replace("{glossary_block}", glossary_block)
     lang_label = {"en": "English", "ar": "Arabic", "fa": "Persian"}.get(source_lang, "English")
     user_message = f"Translate the following {lang_label} text into Chinese:\n\n{source_text}"
 
-    response_text, model_used = _call_llm(system_prompt, user_message, model_key=model_key, temperature=0.3)
+    response_text, model_used = _call_llm(system_prompt, user_message, model_key=model_key, temperature=0.3, api_key=api_key)
     prompt_record = f"[System]\n{system_prompt}\n\n[User]\n{user_message}"
 
     parsed = _parse_json_response(response_text)
@@ -236,12 +227,12 @@ Return your output as JSON with these keys:
 Return ONLY the JSON object, no other text."""
 
 
-def editing_agent(source_text, approved_translation, glossary, model_key=None):
+def editing_agent(source_text, approved_translation, glossary, model_key=None, api_key=None):
     glossary_block = format_glossary_for_prompt(glossary)
     system_prompt = EDITING_SYSTEM_PROMPT.replace("{glossary_block}", glossary_block)
     user_message = f"ORIGINAL SOURCE TEXT:\n{source_text}\n\nHUMAN-APPROVED CHINESE TRANSLATION:\n{approved_translation}"
 
-    response_text, model_used = _call_llm(system_prompt, user_message, model_key=model_key, temperature=0.2)
+    response_text, model_used = _call_llm(system_prompt, user_message, model_key=model_key, temperature=0.2, api_key=api_key)
     prompt_record = f"[System]\n{system_prompt}\n\n[User]\n{user_message}"
 
     parsed = _parse_json_response(response_text)
@@ -287,11 +278,11 @@ Return your output as JSON with these keys:
 Return ONLY the JSON object, no other text."""
 
 
-def typesetting_agent(source_text, edited_text, glossary, model_key=None):
+def typesetting_agent(source_text, edited_text, glossary, model_key=None, api_key=None):
     system_prompt = TYPESETTING_SYSTEM_PROMPT
     user_message = f"ORIGINAL SOURCE TEXT:\n{source_text}\n\nEDITED CHINESE TRANSLATION (from Stage 3):\n{edited_text}"
 
-    response_text, model_used = _call_llm(system_prompt, user_message, model_key=model_key, temperature=0.1)
+    response_text, model_used = _call_llm(system_prompt, user_message, model_key=model_key, temperature=0.1, api_key=api_key)
     prompt_record = f"[System]\n{system_prompt}\n\n[User]\n{user_message}"
 
     parsed = _parse_json_response(response_text)

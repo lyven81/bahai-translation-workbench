@@ -420,22 +420,24 @@
             <ul>
                 <li><strong>FastAPI Backend:</strong> Handles all API routes, pipeline orchestration, and LLM calls</li>
                 <li><strong>SQLite Database:</strong> Stores users, pipelines, glossary terms, and translation history</li>
-                <li><strong>Multi-LLM Adapter:</strong> Unified interface to Claude, GPT-4, Gemini, and DeepSeek APIs</li>
+                <li><strong>Multi-LLM Adapter:</strong> Unified interface to Claude, GPT-4, Gemini, and DeepSeek APIs (Claude active in public demo; others enabled when self-hosted)</li>
                 <li><strong>Static Frontend:</strong> Vanilla HTML/JS served directly by FastAPI, no build step required</li>
-                <li><strong>Docker Container:</strong> Single container deployment on Google Cloud Run with environment-based API key configuration</li>
+                <li><strong>Docker Container:</strong> Single container deployment on Google Cloud Run. The public demo uses bring-your-own-key — visitors supply their own Anthropic key in the browser, so no keys are stored server-side</li>
             </ul>
         </div>
 
         <div class="content-section">
             <h2>Setup Guide</h2>
 
-            <h3>Prerequisites</h3>
+            <h3>Try the Live Demo</h3>
             <ul>
-                <li><strong>Python 3.10+</strong> with pip</li>
-                <li>API keys for at least one LLM provider (Claude, GPT-4, Gemini, or DeepSeek)</li>
+                <li>A free <strong>Anthropic API key</strong> — get one at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> (takes 2 minutes; Anthropic gives new accounts a small free credit)</li>
+                <li>Open the live app, paste your key into the API Key banner at the top, and log in as <strong>Zhang Wei</strong> (coordinator) to try the full pipeline</li>
+                <li>Your key is stored only in your browser (localStorage) and sent directly to Anthropic — it is never stored on our server</li>
             </ul>
 
-            <h3>Quick Start</h3>
+            <h3>Self-Hosting (Optional)</h3>
+            <p style="font-size: 14px; color: #555; margin-bottom: 12px;">Want to run it yourself, enable all four LLM providers, and disable the BYO-key prompt? Clone the repo and provide your own server-side keys via .env:</p>
             <div class="code-block">
 # Clone the repository
 git clone https://github.com/lyven81/bahai-translation-workbench.git
@@ -446,7 +448,7 @@ pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
-# Add your API keys to .env
+# Add your API keys to .env (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, DEEPSEEK_API_KEY)
 
 # Run the application
 python app.py

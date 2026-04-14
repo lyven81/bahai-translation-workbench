@@ -24,6 +24,28 @@
         .header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #c4a882; }
         .header-right a { color: #c4a882; cursor: pointer; text-decoration: underline; }
 
+        /* API Key Banner (compact, above tab bar) */
+        .api-key-banner { background: linear-gradient(135deg, #fff8ec 0%, #fdf3d9 100%); border-bottom: 1px solid #e5c97a; padding: 12px 32px; }
+        .api-key-banner.saved { background: #f0f7ec; border-bottom-color: #9ec088; }
+        .api-key-banner-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
+        .api-key-banner-title { font-size: 13px; font-weight: 600; color: #3c2415; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .api-key-banner .badge-key { background: #c4a882; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; letter-spacing: 0.3px; }
+        .api-key-banner.saved .badge-key { background: #5a8a5a; }
+        .api-key-banner input { flex: 1; min-width: 220px; padding: 8px 10px; border: 1px solid #d4c5b3; border-radius: 6px; font-size: 13px; font-family: 'Courier New', monospace; background: #fff; }
+        .api-key-banner input:focus { outline: none; border-color: #c4a882; box-shadow: 0 0 0 3px rgba(196,168,130,0.15); }
+        .api-key-banner button { padding: 8px 14px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; background: #5a3a28; color: #fff; }
+        .api-key-banner button:hover { background: #3c2415; }
+        .api-key-banner button.btn-clear { background: #b0a090; }
+        .api-key-banner button.btn-clear:hover { background: #8a7a68; }
+        .api-key-banner a.help-link { font-size: 12px; color: #5a3a28; text-decoration: underline; cursor: pointer; flex-shrink: 0; }
+        .api-key-help { max-width: 1200px; margin: 10px auto 0; background: #fff; border: 1px solid #e0d5c8; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #3c2415; display: none; }
+        .api-key-help.visible { display: block; }
+        .api-key-help h4 { font-size: 13px; color: #5a3a28; margin-bottom: 8px; }
+        .api-key-help ol { margin-left: 18px; }
+        .api-key-help li { margin-bottom: 4px; line-height: 1.5; }
+        .api-key-help a { color: #5a3a28; font-weight: 600; }
+        .api-key-help .privacy-note { font-size: 11px; color: #7a6a55; margin-top: 8px; font-style: italic; }
+
         /* Tabs */
         .tab-bar { display: flex; gap: 0; background: #fff; border-bottom: 1px solid #e0d5c8; padding: 0 32px; }
         .tab { padding: 12px 20px; font-size: 13px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 2px solid transparent; }
@@ -148,6 +170,7 @@
             .form-row, .form-row-3 { grid-template-columns: 1fr; }
             .radio-group { flex-direction: column; gap: 8px; }
             .tab-bar { overflow-x: auto; }
+            .api-key-banner-row { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -173,6 +196,7 @@
             </select>
         </div>
         <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Log In</button>
+        <p style="font-size:11px; color:#999; margin-top:16px;">Tip: Log in as <b>Zhang Wei</b> (coordinator) to try the full pipeline.</p>
     </div>
 </div>
 
@@ -184,6 +208,26 @@
     <div class="header-right">
         <span id="user-info"></span>
         <a onclick="doLogout()">Log out</a>
+    </div>
+</div>
+
+<!-- API Key Banner -->
+<div class="api-key-banner" id="api-key-banner">
+    <div class="api-key-banner-row">
+        <span class="api-key-banner-title">Anthropic API Key <span class="badge-key" id="key-badge">REQUIRED</span></span>
+        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
+        <button onclick="saveKey()">Save Key</button>
+        <button class="btn-clear" onclick="clearKey()" id="btn-clear-key" style="display:none;">Clear</button>
+        <a class="help-link" onclick="toggleKeyHelp()" id="key-help-link">How do I get one?</a>
+    </div>
+    <div class="api-key-help" id="api-key-help">
+        <h4>Get your free Anthropic API key in 3 steps</h4>
+        <ol>
+            <li>Go to <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com/settings/keys</a> and sign up with your email (free — takes 2 minutes).</li>
+            <li>Click <b>"Create Key"</b>. Give it any name (e.g., "Translation Workbench"). Copy the key that appears — it starts with <code>sk-ant-...</code></li>
+            <li>Paste the key into the box above and click <b>Save Key</b>. You're ready to translate.</li>
+        </ol>
+        <p class="privacy-note">Your key is stored only in your browser (localStorage) and sent directly to Anthropic when you run a translation. It is never stored on our server or shared with anyone. You can clear it any time.</p>
     </div>
 </div>
 
@@ -374,7 +418,7 @@
 <div class="tab-content" id="tab-pipeline">
     <div class="panel">
         <h2>Pipeline Settings — LLM per Stage</h2>
-        <p style="font-size:13px; color:#666; margin-bottom:16px;">Select which LLM model to use at each AI-operated stage. All documents use these settings. Only Claude is active unless you add other API keys to .env.</p>
+        <p style="font-size:13px; color:#666; margin-bottom:16px;">Select which LLM model to use at each AI-operated stage. <b>Demo mode:</b> only Claude (Anthropic) is enabled in this public deployment. The other providers are available when self-hosting with your own server keys.</p>
         <div class="form-row-3" style="margin-bottom:24px">
             <div class="form-group"><label>Stage 1: Translation</label><select id="ps-stage1"></select></div>
             <div class="form-group"><label>Stage 3: Editing</label><select id="ps-stage3"></select></div>
@@ -421,11 +465,71 @@
 </div>
 
 <script>
+const KEY_STORAGE = 'bahai_workbench_api_key';
 let currentUser = null;
 let currentDocId = null;
 let currentDoc = null;
 let glossaryData = [];
 let teamData = [];
+
+// ========== API KEY MANAGEMENT ==========
+function getApiKey() { return localStorage.getItem(KEY_STORAGE) || ''; }
+
+function updateKeyBannerState() {
+    const key = getApiKey();
+    const banner = document.getElementById('api-key-banner');
+    const badge = document.getElementById('key-badge');
+    const clearBtn = document.getElementById('btn-clear-key');
+    const input = document.getElementById('api-key-input');
+    if (key) {
+        banner.classList.add('saved');
+        badge.textContent = 'SAVED';
+        clearBtn.style.display = 'inline-block';
+        input.value = '••••••••••••' + key.slice(-4);
+        input.disabled = true;
+    } else {
+        banner.classList.remove('saved');
+        badge.textContent = 'REQUIRED';
+        clearBtn.style.display = 'none';
+        input.value = '';
+        input.disabled = false;
+    }
+}
+
+function saveKey() {
+    const input = document.getElementById('api-key-input');
+    const val = input.value.trim();
+    if (!val || val.startsWith('••')) { alert('Please paste your Anthropic API key (starts with sk-ant-...).'); return; }
+    if (!val.startsWith('sk-ant-')) {
+        if (!confirm('That does not look like an Anthropic key (should start with "sk-ant-"). Save anyway?')) return;
+    }
+    localStorage.setItem(KEY_STORAGE, val);
+    updateKeyBannerState();
+}
+
+function clearKey() {
+    if (!confirm('Remove the saved API key from this browser?')) return;
+    localStorage.removeItem(KEY_STORAGE);
+    updateKeyBannerState();
+}
+
+function toggleKeyHelp() {
+    const help = document.getElementById('api-key-help');
+    const link = document.getElementById('key-help-link');
+    help.classList.toggle('visible');
+    link.textContent = help.classList.contains('visible') ? 'Hide help' : 'How do I get one?';
+}
+
+function ensureKeyOrPrompt() {
+    const key = getApiKey();
+    if (!key) {
+        alert('Please enter your Anthropic API key in the banner at the top of the page before running an AI translation.');
+        document.getElementById('api-key-input').focus();
+        document.getElementById('api-key-banner').scrollIntoView({behavior:'smooth'});
+        return null;
+    }
+    return key;
+}
 
 // ========== AUTH ==========
 window.addEventListener('DOMContentLoaded', async () => {
@@ -465,6 +569,7 @@ function enterApp() {
     document.getElementById('main-app').style.display = 'block';
     document.getElementById('glossary-toggle-btn').style.display = 'block';
     document.getElementById('user-info').textContent = `${currentUser.name} (${currentUser.role.replace('_',' ')})`;
+    updateKeyBannerState();
     buildTabs();
     loadGlossary();
     loadDocuments();
@@ -704,6 +809,7 @@ function renderDocument(doc) {
 
 // ========== STAGE ACTIONS ==========
 async function startTranslation() {
+    const apiKey = ensureKeyOrPrompt(); if (!apiKey) return;
     const title = document.getElementById('doc-title').value.trim();
     const sourceLang = document.getElementById('source-lang').value;
     const sourceText = document.getElementById('source-text').value.trim();
@@ -715,7 +821,11 @@ async function startTranslation() {
     document.getElementById('btn-translate').disabled = true;
     document.getElementById('spinner-translate').classList.add('visible');
     try {
-        const res = await fetch('/api/documents', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title, source_text:sourceText, source_lang:sourceLang, governor_model:govModel, governor_a:govA, governor_b:govB}) });
+        const res = await fetch('/api/documents', {
+            method:'POST',
+            headers:{'Content-Type':'application/json', 'X-API-Key': apiKey},
+            body:JSON.stringify({title, source_text:sourceText, source_lang:sourceLang, governor_model:govModel, governor_a:govA, governor_b:govB})
+        });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
         const doc = await res.json();
         currentDocId = doc.id; currentDoc = doc;
@@ -760,10 +870,14 @@ async function submitReview() {
 }
 
 async function runEditing() {
+    const apiKey = ensureKeyOrPrompt(); if (!apiKey) return;
     document.getElementById('btn-edit').disabled = true;
     document.getElementById('spinner-edit').classList.add('visible');
     try {
-        const res = await fetch(`/api/documents/${currentDocId}/edit`, {method:'POST'});
+        const res = await fetch(`/api/documents/${currentDocId}/edit`, {
+            method:'POST',
+            headers:{'X-API-Key': apiKey},
+        });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
         currentDoc = await res.json();
         renderDocument(currentDoc);
@@ -862,7 +976,7 @@ async function loadPipelineSettings() {
         ['ps-stage1','ps-stage3','ps-stage4'].forEach(id => {
             const select = document.getElementById(id);
             select.innerHTML = models.map(m =>
-                `<option value="${m.id}" ${!m.available?'disabled':''}>${m.label}${!m.available?' (no API key)':''}</option>`
+                `<option value="${m.id}" ${!m.available?'disabled':''}>${m.label}${!m.available?' (demo: disabled)':''}</option>`
             ).join('');
         });
 
@@ -870,9 +984,12 @@ async function loadPipelineSettings() {
         document.getElementById('ps-stage3').value = settings['3'] || 'claude';
         document.getElementById('ps-stage4').value = settings['4'] || 'claude';
 
-        document.getElementById('models-table-body').innerHTML = models.map(m =>
-            `<tr><td>${m.label}</td><td>${m.provider}</td><td>${m.available ? '<span class="badge badge-done">Active</span>' : '<span class="badge badge-pending">No API Key</span>'}</td></tr>`
-        ).join('');
+        document.getElementById('models-table-body').innerHTML = models.map(m => {
+            const statusBadge = m.available
+                ? '<span class="badge badge-done">Active (BYO Key)</span>'
+                : `<span class="badge badge-pending" title="${m.reason||''}">Demo: Disabled</span>`;
+            return `<tr><td>${m.label}</td><td>${m.provider}</td><td>${statusBadge}</td></tr>`;
+        }).join('');
     } catch(e) { console.error(e); }
 }
 

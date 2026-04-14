@@ -6,9 +6,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, Header
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+
+import anthropic
 
 from db import (
     init_db, create_document, get_document, get_all_documents,
@@ -75,6 +77,30 @@ def _save_pipeline_settings():
 _load_glossary()
 _load_team()
 _load_pipeline_settings()
+
+
+# ---------------------------------------------------------------------------
+# API key helper (demo mode: user supplies their own Anthropic key)
+# ---------------------------------------------------------------------------
+
+def _require_api_key(x_api_key):
+    if not x_api_key or not x_api_key.strip():
+        raise HTTPException(
+            status_code=401,
+            detail="Anthropic API key required. Please enter your key in the API Key panel at the top of the app. Get a free key at console.anthropic.com.",
+        )
+    return x_api_key.strip()
+
+
+def _handle_anthropic_errors(exc):
+    """Translate Anthropic SDK errors into HTTPException with friendly messages."""
+    if isinstance(exc, anthropic.AuthenticationError):
+        raise HTTPException(status_code=401, detail="Invalid Anthropic API key. Please check your key and try again.")
+    if isinstance(exc, anthropic.RateLimitError):
+        raise HTTPException(status_code=429, detail="Your Anthropic account rate limit was hit. Please wait a moment and try again.")
+    if isinstance(exc, anthropic.APIError):
+        raise HTTPException(status_code=502, detail=f"Anthropic API error: {str(exc)}")
+    raise exc
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +228,7 @@ def _extract_clean_text(raw):
     """Keep unwrapping JSON and markdown fences until we get plain text."""
     import re
     text = raw
-    for _ in range(5):  # Max 5 unwrap attempts
+    for _ in range(5):
         text = re.sub(r"^```(?:json)?\s*\n?", "", text.strip())
         text = re.sub(r"\n?```\s*$", "", text.strip())
         if text.strip().startswith("{"):
@@ -211,7 +237,7 @@ def _extract_clean_text(raw):
                 extracted = data.get("typeset_text") or data.get("edited_text") or data.get("translation")
                 if extracted:
                     text = extracted
-                    continue  # Try unwrapping again
+                    continue
                 else:
                     break
             except (json.JSONDecodeError, TypeError):
@@ -280,16 +306,20 @@ def logout(response: Response):
 
 @app.get("/api/models")
 def list_models():
-    return {"models": get_available_models()}
+    return {"models": get_available_models(), "demo_mode": True, "enabled_providers": ["anthropic"]}
 
 @app.get("/api/pipeline-settings")
 def get_pipeline_settings(request: Request):
     _require_role(request, ["coordinator"])
-    return {"settings": PIPELINE_SETTINGS, "models": get_available_models()}
+    return {"settings": PIPELINE_SETTINGS, "models": get_available_models(), "demo_mode": True}
 
 @app.post("/api/pipeline-settings")
 def update_pipeline_settings(req: PipelineSettingsRequest, request: Request):
     _require_role(request, ["coordinator"])
+    # Demo mode: only Claude is allowed across all stages
+    for stage, model in [("stage_1", req.stage_1), ("stage_3", req.stage_3), ("stage_4", req.stage_4)]:
+        if model != "claude":
+            raise HTTPException(status_code=400, detail=f"Demo mode: only Claude is supported. {stage} must be set to 'claude'.")
     global PIPELINE_SETTINGS
     PIPELINE_SETTINGS = {"1": req.stage_1, "3": req.stage_3, "4": req.stage_4}
     _save_pipeline_settings()
@@ -389,12 +419,19 @@ def list_documents(request: Request):
     ) for d in docs]}
 
 @app.post("/api/documents")
-def create_doc(req: CreateDocumentRequest, request: Request):
+def create_doc(req: CreateDocumentRequest, request: Request,
+               x_api_key: str | None = Header(default=None, alias="X-API-Key")):
     _require_role(request, ["coordinator"])
+    api_key = _require_api_key(x_api_key)
     doc_id = create_document(req.title, req.source_text, req.source_lang, req.governor_model, req.governor_a, req.governor_b)
     log_audit(doc_id, "stage1_started")
     model_key = PIPELINE_SETTINGS.get("1", DEFAULT_MODEL)
-    result = translation_agent(req.source_text, req.source_lang, GLOSSARY, model_key=model_key)
+    try:
+        result = translation_agent(req.source_text, req.source_lang, GLOSSARY, model_key=model_key, api_key=api_key)
+    except (anthropic.AuthenticationError, anthropic.RateLimitError, anthropic.APIError) as e:
+        _handle_anthropic_errors(e)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     save_stage_output(doc_id=doc_id, stage=1, input_text=req.source_text, output_text=result["translation"],
                       operator="ai", model_used=result.get("model_used"), prompt_used=result.get("prompt_used"))
     log_audit(doc_id, "stage1_completed", {"term_usage": result.get("term_usage",[]), "notes": result.get("notes",""), "model": model_key})
@@ -434,8 +471,10 @@ def review_doc(doc_id: int, req: ReviewRequest, request: Request):
     return _build_response(doc_id)
 
 @app.post("/api/documents/{doc_id}/edit")
-def edit_doc(doc_id: int, request: Request):
+def edit_doc(doc_id: int, request: Request,
+             x_api_key: str | None = Header(default=None, alias="X-API-Key")):
     _require_user(request)
+    api_key = _require_api_key(x_api_key)
     doc = get_document(doc_id)
     if not doc: raise HTTPException(status_code=404, detail="Document not found")
     if doc["current_stage"] != 3: raise HTTPException(status_code=400, detail="Document is not at Stage 3")
@@ -446,7 +485,12 @@ def edit_doc(doc_id: int, request: Request):
     # Stage 3: Editing
     log_audit(doc_id, "stage3_started")
     model_3 = PIPELINE_SETTINGS.get("3", DEFAULT_MODEL)
-    edit_result = editing_agent(doc["source_text"], s2["output_text"], GLOSSARY, model_key=model_3)
+    try:
+        edit_result = editing_agent(doc["source_text"], s2["output_text"], GLOSSARY, model_key=model_3, api_key=api_key)
+    except (anthropic.AuthenticationError, anthropic.RateLimitError, anthropic.APIError) as e:
+        _handle_anthropic_errors(e)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     save_stage_output(doc_id=doc_id, stage=3, input_text=s2["output_text"],
                       output_text=json.dumps({"edited_text": edit_result["edited_text"], "changes_made": edit_result.get("changes_made",[]), "checklist": edit_result.get("checklist",{})}, ensure_ascii=False),
                       operator="ai", model_used=edit_result.get("model_used"), prompt_used=edit_result.get("prompt_used"))
@@ -455,7 +499,12 @@ def edit_doc(doc_id: int, request: Request):
     # Stage 4: Typesetting
     log_audit(doc_id, "stage4_started")
     model_4 = PIPELINE_SETTINGS.get("4", DEFAULT_MODEL)
-    ts_result = typesetting_agent(doc["source_text"], edit_result["edited_text"], GLOSSARY, model_key=model_4)
+    try:
+        ts_result = typesetting_agent(doc["source_text"], edit_result["edited_text"], GLOSSARY, model_key=model_4, api_key=api_key)
+    except (anthropic.AuthenticationError, anthropic.RateLimitError, anthropic.APIError) as e:
+        _handle_anthropic_errors(e)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     save_stage_output(doc_id=doc_id, stage=4, input_text=edit_result["edited_text"],
                       output_text=json.dumps({"typeset_text": ts_result["typeset_text"], "issues_found": ts_result.get("issues_found",[]), "validation_checklist": ts_result.get("validation_checklist",{})}, ensure_ascii=False),
                       operator="ai", model_used=ts_result.get("model_used"), prompt_used=ts_result.get("prompt_used"))
